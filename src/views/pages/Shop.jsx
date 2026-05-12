@@ -1,29 +1,49 @@
+/**
+ * @fileoverview Página de Tienda (Shop)
+ * Muestra todos los productos con filtros por categoría y búsqueda por nombre.
+ * Los filtros y la búsqueda se manejan en useProductController.
+ *
+ * Filtros disponibles:
+ * - Todos
+ * - Camisas
+ * - Suéteres
+ * - Pantalones
+ * - Blusas
+ */
+
 import { useProductController } from "../../controllers/useProductController";
 import { useCartController } from "../../controllers/useCartController";
 import ProductCard from "../components/ProductCard";
 
+/**
+ * Opciones de filtro disponibles en la tienda.
+ * @type {Array<{label: string, value: string}>}
+ */
 const FILTERS = [
-  { label: "Todos",      value: "all" },
-  { label: "Camisas",    value: "camisa" },
-  { label: "Suéteres",   value: "sueter" },
+  { label: "Todos",      value: "all"      },
+  { label: "Camisas",    value: "camisa"   },
+  { label: "Suéteres",   value: "sueter"   },
   { label: "Pantalones", value: "pantalon" },
-  { label: "Blusas",     value: "blusa" },
+  { label: "Blusas",     value: "blusa"    },
 ];
 
+/**
+ * Página de tienda con filtros y búsqueda.
+ * Muestra un mensaje cuando no hay productos que coincidan con la búsqueda.
+ */
 export default function Shop() {
   const { products, category, setCategory, query, setQuery } = useProductController();
   const { handleAddToCart } = useCartController();
 
   return (
     <section id="shop-page" className="section-p1">
+
+      {/* ── Encabezado con búsqueda ── */}
       <div className="shop-header">
         <h2>Todos los Productos</h2>
-
-        {/* Búsqueda */}
         <div className="search-bar">
           <input
             type="text"
-            id="search-input"
             placeholder="Buscar productos..."
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -32,7 +52,9 @@ export default function Shop() {
         </div>
       </div>
 
-      {/* Filtros */}
+      {/* ── Filtros por categoría ──
+          Al seleccionar un filtro se limpia la búsqueda y viceversa
+      ── */}
       <div className="filter-bar">
         {FILTERS.map(f => (
           <button
@@ -45,11 +67,17 @@ export default function Shop() {
         ))}
       </div>
 
-      {/* Grid de productos */}
-      <div className="pro-container" id="shop-grid">
+      {/* ── Grid de productos ──
+          Si no hay resultados muestra un mensaje amigable
+      ── */}
+      <div className="pro-container">
         {products.length > 0 ? (
           products.map(product => (
-            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={handleAddToCart}
+            />
           ))
         ) : (
           <div style={{ textAlign: "center", padding: "40px", width: "100%" }}>
