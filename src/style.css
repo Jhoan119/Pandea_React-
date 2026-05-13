@@ -1320,6 +1320,12 @@ body {
 .profile-dropdown button:hover {
   background: #fff0f0;
 }
+.profile-dropdown .admin-button {
+  color: #7c3aed;
+}
+.profile-dropdown .admin-button:hover {
+  background: #f3e8ff;
+}
 
 /* ── HERO ─────────────────────────────────────────────────── */
 #hero {

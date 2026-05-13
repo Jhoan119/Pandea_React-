@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useAuthController } from "../../controllers/useAuthController";
 import { useCartController } from "../../controllers/useCartController";
@@ -12,12 +12,17 @@ export default function Navbar() {
   const { logout } = useAuthController();
   const { count, openCart } = useCartController();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [modal, setModal] = useState(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
+  
+  // Verificar si el usuario es administrador
+  const adminEmails = ["danicolaspp@gmail.com", "3106arias@gmail.com", "cristiangalindopaez2006@gmail.com"];
+  const isAdmin = user && adminEmails.includes(user.email);
 
   return (
     <>
@@ -66,9 +71,19 @@ export default function Navbar() {
                     <small>{user.email}</small>
                   </div>
                   <hr />
+                  {isAdmin && (
+                    <>
+                      <button className="admin-button" onClick={() => { navigate("/admin"); setProfileOpen(false); }}>
+                        <i className="fas fa-crown" /> Panel Admin
+                      </button>
+                      <hr />
+                    </>
+                  )}
                   <button onClick={() => { logout(); setProfileOpen(false); }}>
                     <i className="fas fa-sign-out-alt" /> Cerrar sesión
                   </button>
+                  <hr />
+                  
                 </div>
               )}
             </div>

@@ -37,7 +37,23 @@ const fmtK = (n) => n >= 1000000 ? `$${(n / 1000000).toFixed(1)}M` : `$${Math.ro
 
 const S = {
   wrap:       { display: "flex", minHeight: "calc(100vh - 80px)", background: "#f8f7f4", fontFamily: "inherit" },
-  sidebar:    { width: 220, minWidth: 220, background: "#fff", borderRight: "0.5px solid rgba(0,0,0,0.08)", display: "flex", flexDirection: "column" },
+  sidebar:    (mobile, open) => ({
+    width: mobile ? "85%" : 220,
+    minWidth: mobile ? "auto" : 220,
+    background: "#fff",
+    borderRight: mobile ? "none" : "0.5px solid rgba(0,0,0,0.08)",
+    display: "flex",
+    flexDirection: "column",
+    position: mobile ? "fixed" : "relative",
+    left: mobile ? 0 : undefined,
+    top: mobile ? 0 : undefined,
+    height: mobile ? "100vh" : undefined,
+    zIndex: mobile ? 30 : undefined,
+    transform: mobile ? `translateX(${open ? "0" : "-100%"})` : undefined,
+    transition: mobile ? "transform 180ms ease" : undefined,
+    boxShadow: mobile ? "0 20px 40px rgba(0,0,0,0.12)" : undefined,
+  }),
+  overlay:    { position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 20 },
   logo:       { padding: "20px 18px 14px", borderBottom: "0.5px solid rgba(0,0,0,0.08)" },
   logoName:   { fontSize: 16, fontWeight: 600, letterSpacing: ".5px", color: "#1a1a1a" },
   logoSub:    { fontSize: 11, color: "#999", marginTop: 2 },
@@ -53,6 +69,7 @@ const S = {
   }),
   main:       { flex: 1, overflowY: "auto", padding: "24px 28px" },
   topbar:     { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 },
+  mobileMenuBtn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(0,0,0,0.12)", background: "#fff", cursor: "pointer", fontSize: 14 },
   pageTitle:  { fontSize: 18, fontWeight: 600, color: "#1a1a1a" },
   pageSub:    { fontSize: 13, color: "#999", marginTop: 2 },
   btn:        { display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, fontSize: 13, cursor: "pointer", border: "0.5px solid rgba(0,0,0,0.2)", background: "#fff", color: "#1a1a1a" },
@@ -566,6 +583,19 @@ export default function Admin() {
   const { user } = useAuth();
   const { isAdmin, loading, products, createProduct, updateProduct, deleteProduct, uploadImage, error, success } = useAdminController();
   const [section, setSection] = useState("dashboard");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const updateMobile = () => setIsMobile(window.innerWidth <= 768);
+    updateMobile();
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) setMenuOpen(false);
+  }, [isMobile]);
 
   // Carga Chart.js dinámicamente
   useEffect(() => {
@@ -598,14 +628,22 @@ export default function Admin() {
   return (
     <div style={S.wrap}>
       {/* ── Sidebar ── */}
-      <aside style={S.sidebar}>
+      {isMobile && menuOpen && <div style={S.overlay} onClick={() => setMenuOpen(false)} />}
+      <aside style={S.sidebar(isMobile, menuOpen)}>
         <div style={S.logo}>
           <div style={S.logoName}>PANDEA</div>
           <div style={S.logoSub}>Panel de administración</div>
         </div>
         <nav style={S.nav}>
           {NAV.map(n => (
-            <button key={n.id} style={S.navBtn(section === n.id)} onClick={() => setSection(n.id)}>
+            <button
+              key={n.id}
+              style={S.navBtn(section === n.id)}
+              onClick={() => {
+                setSection(n.id);
+                if (isMobile) setMenuOpen(false);
+              }}
+            >
               <span style={{ fontSize: 16 }}>{n.icon}</span> {n.label}
             </button>
           ))}
@@ -617,11 +655,16 @@ export default function Admin() {
 
       {/* ── Contenido ── */}
       <main style={S.main}>
-        <div style={S.topbar}>
+        <div style={{ ...S.topbar, alignItems: "center" }}>
           <div>
             <div style={S.pageTitle}>{TITLES[section].title}</div>
             <div style={S.pageSub}>{TITLES[section].sub}</div>
           </div>
+          {isMobile && (
+            <button style={S.mobileMenuBtn} onClick={() => setMenuOpen(prev => !prev)} aria-expanded={menuOpen}>
+              ☰ Menú
+            </button>
+          )}
         </div>
 
         {section === "dashboard"  && <SectionDashboard />}
