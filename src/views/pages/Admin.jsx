@@ -22,7 +22,7 @@ import {
 // ─── Constantes del formulario de producto ────────────────────────────────────
 
 const ALL_SIZES  = ["XS", "S", "M", "L", "XL"];
-const CATEGORIES = ["camisa", "sueter", "pantalon", "blusa"];
+const CATEGORIES = ["Camisa", "Sueter", "Pantalon", "Blusa"];
 const EMPTY_FORM = {
   name: "", price: "", category: "camisa",
   brand: "Pandea", sizes: ["S", "M", "L"], colors: ["#000000"], img: "",
