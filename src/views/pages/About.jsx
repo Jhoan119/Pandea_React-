@@ -12,10 +12,9 @@
  * @type {Array<{name: string, role: string, icon: string}>}
  */
 const TEAM = [
-  { name: "Daniel Pedreros", role: "Fundador & CEO",      icon: "fa-user-tie"  },
-  { name: "Equipo Diseño",   role: "Diseño & UX",         icon: "fa-palette"   },
-  { name: "Equipo Tech",     role: "Desarrollo",          icon: "fa-code"      },
-  { name: "Soporte",         role: "Atención al Cliente", icon: "fa-headset"   },
+  { name: "Daniel Pedreros", role: "Desarrollador Full Stack",    icon: "fa-user-tie"   },
+  { name: "Jhoan Noscue",    role: "Desarrollador Full Stack",    icon: "fa-user-tie"   },
+  { name: "Cristian Baena",  role: "Desarrollador Full Stack",    icon: "fa-user-tie"   },
 ];
 
 /**
