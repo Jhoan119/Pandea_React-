@@ -1,45 +1,57 @@
 /**
  * @fileoverview Controlador de Productos
- * Hook que maneja el estado de filtros y búsqueda de productos.
- * Conecta la vista Shop con el productService.
- *
- * @example
- * const { products, setCategory, setQuery } = useProductController();
- * setCategory("camisa"); // filtra solo camisas
- * setQuery("azul");      // busca por nombre
+ * Maneja el estado de productos, filtros y búsqueda.
+ * Ahora es asíncrono porque los productos vienen de Firestore.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { productService } from "../services/productService";
 
 /**
- * Hook que expone los productos filtrados y las acciones para filtrarlos.
- * Usa useMemo para no recalcular si no cambian los filtros.
- *
+ * Hook que provee productos filtrados desde Firestore.
  * @returns {{
  *   products: ProductModel[],
+ *   loading: boolean,
  *   category: string,
  *   setCategory: Function,
  *   query: string,
- *   setQuery: Function
+ *   setQuery: Function,
+ *   reload: Function
  * }}
  */
 export function useProductController() {
-  /** @type {string} Categoría activa ("all" muestra todos) */
-  const [category, setCategory] = useState("all");
+  const [products,  setProducts]  = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [category,  setCategory]  = useState("all");
+  const [query,     setQuery]     = useState("");
 
-  /** @type {string} Texto de búsqueda actual */
-  const [query, setQuery] = useState("");
+  /** Carga productos según filtro o búsqueda activa */
+  async function loadProducts() {
+    setLoading(true);
+    try {
+      let data;
+      if (query.trim()) {
+        data = await productService.search(query);
+      } else {
+        data = await productService.getByCategory(category);
+      }
+      setProducts(data);
+    } catch (err) {
+      console.error("Error cargando productos:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  /**
-   * Lista de productos filtrada.
-   * Se recalcula solo cuando cambia category o query.
-   * @type {ProductModel[]}
-   */
-  const products = useMemo(() => {
-    if (query.trim()) return productService.search(query);
-    return productService.getByCategory(category);
+  /** Recarga cuando cambia categoría o búsqueda */
+  useEffect(() => {
+    loadProducts();
   }, [category, query]);
 
-  return { products, category, setCategory, query, setQuery };
+  return {
+    products, loading,
+    category, setCategory,
+    query, setQuery,
+    reload: loadProducts
+  };
 }
