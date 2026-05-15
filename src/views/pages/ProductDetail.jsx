@@ -1,4 +1,10 @@
-import { useState } from "react";
+/**
+ * @fileoverview Página de Detalle de Producto
+ * Muestra la información completa de un producto desde Firestore.
+ * Permite seleccionar talla, color y cantidad antes de agregar al carrito.
+ */
+
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { productService } from "../../services/productService";
 import { useCartController } from "../../controllers/useCartController";
@@ -6,14 +12,32 @@ import { useCartController } from "../../controllers/useCartController";
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const product = productService.getById(id);
   const { handleAddToCart } = useCartController();
 
+  const [product,       setProduct]       = useState(null);
+  const [loading,       setLoading]       = useState(true);
   const [selectedSize,  setSelectedSize]  = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
   const [quantity,      setQuantity]      = useState(1);
   const [added,         setAdded]         = useState(false);
   const [error,         setError]         = useState("");
+
+  /** Carga el producto desde Firestore al montar */
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const data = await productService.getById(id);
+      setProduct(data);
+      setLoading(false);
+    }
+    load();
+  }, [id]);
+
+  if (loading) return (
+    <div style={{ textAlign: "center", padding: 80 }}>
+      <p>Cargando producto...</p>
+    </div>
+  );
 
   if (!product) return (
     <div style={{ textAlign: "center", padding: "80px 20px" }}>
@@ -28,7 +52,6 @@ export default function ProductDetail() {
     if (!selectedSize)  return setError("Por favor selecciona una talla.");
     if (!selectedColor) return setError("Por favor selecciona un color.");
     setError("");
-
     handleAddToCart({
       ...product,
       id: `${product.id}-${selectedSize}-${selectedColor}`,
@@ -36,7 +59,6 @@ export default function ProductDetail() {
       color: selectedColor,
       quantity,
     });
-
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   }
@@ -55,17 +77,16 @@ export default function ProductDetail() {
 
       <div className="detail-grid">
 
-        {/* ── Imagen ── */}
+        {/* Imagen */}
         <div className="detail-img-wrap">
           <img src={product.img} alt={product.name} />
         </div>
 
-        {/* ── Info ── */}
+        {/* Info */}
         <div className="detail-info">
           <span className="detail-brand">{product.brand}</span>
           <h1 className="detail-name">{product.name}</h1>
 
-          {/* Estrellas */}
           <div className="detail-stars">
             <i className="fas fa-star" /><i className="fas fa-star" />
             <i className="fas fa-star" /><i className="fas fa-star" />
@@ -73,7 +94,6 @@ export default function ProductDetail() {
             <span>(128 reseñas)</span>
           </div>
 
-          {/* Precio */}
           <div className="detail-price">
             <h2>{product.getFormattedPrice()}</h2>
             <span className="detail-badge">En stock</span>
@@ -86,17 +106,14 @@ export default function ProductDetail() {
             <p className="detail-label">
               Color: {selectedColor
                 ? <span style={{ background: selectedColor, display: "inline-block", width: 14, height: 14, borderRadius: "50%", marginLeft: 6, verticalAlign: "middle", border: "1px solid #ccc" }} />
-                : <span className="detail-hint">— Selecciona uno</span>
-              }
+                : <span className="detail-hint">— Selecciona uno</span>}
             </p>
             <div className="color-options">
-              {product.colors.map((color, i) => (
-                <button
-                  key={i}
+              {product.colors?.map((color, i) => (
+                <button key={i}
                   className={`color-dot ${selectedColor === color ? "selected" : ""}`}
                   style={{ background: color }}
                   onClick={() => { setSelectedColor(color); setError(""); }}
-                  title={color}
                 />
               ))}
             </div>
@@ -107,16 +124,13 @@ export default function ProductDetail() {
             <p className="detail-label">
               Talla: {selectedSize
                 ? <strong>{selectedSize}</strong>
-                : <span className="detail-hint">— Selecciona una</span>
-              }
+                : <span className="detail-hint">— Selecciona una</span>}
             </p>
             <div className="size-options">
-              {product.sizes.map(size => (
-                <button
-                  key={size}
+              {product.sizes?.map(size => (
+                <button key={size}
                   className={`size-btn ${selectedSize === size ? "selected" : ""}`}
-                  onClick={() => { setSelectedSize(size); setError(""); }}
-                >
+                  onClick={() => { setSelectedSize(size); setError(""); }}>
                   {size}
                 </button>
               ))}
@@ -133,23 +147,19 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* Error */}
           {error && <p className="detail-error"><i className="fas fa-exclamation-circle" /> {error}</p>}
 
-          {/* Botones */}
           <div className="detail-actions">
             <button className="btn-add-cart" onClick={handleAdd}>
               {added
                 ? <><i className="fas fa-check" /> ¡Agregado!</>
-                : <><i className="bi bi-cart3" /> Agregar al carrito</>
-              }
+                : <><i className="bi bi-cart3" /> Agregar al carrito</>}
             </button>
             <button className="btn-back" onClick={() => navigate(-1)}>
               <i className="fas fa-arrow-left" /> Volver
             </button>
           </div>
 
-          {/* Detalles extra */}
           <div className="detail-meta">
             <div><i className="fas fa-truck" /> Envío gratis en pedidos mayores a $150.000</div>
             <div><i className="fas fa-undo" /> Devolución gratuita en 30 días</div>
